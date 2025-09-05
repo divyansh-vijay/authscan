@@ -98,7 +98,7 @@ export default function HomePage() {
 						</div>
 
 						{/* Stats */}
-						<div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+						<div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto text-black">
 							<div className="text-center">
 								<div className="text-4xl font-black gradient-text mb-2">
 									99.9%
