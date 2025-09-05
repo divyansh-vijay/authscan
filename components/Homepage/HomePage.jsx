@@ -14,10 +14,12 @@ import {
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import LoginModal from "@/components/Auth/LoginModal"
+import RegisterModal from "@/components/Auth/RegisterModal"
 import { useRouter } from "next/navigation"
 
 export default function HomePage() {
 	const [showLoginModal, setShowLoginModal] = useState(false)
+	const [showRegisterModal, setShowRegisterModal] = useState(false)
 	const [loginRedirectPath, setLoginRedirectPath] = useState("/")
 	const { user } = useAuth()
 	const router = useRouter()
@@ -45,6 +47,11 @@ export default function HomePage() {
 
 	const handleLoginSuccess = () => {
 		setShowLoginModal(false)
+		navigate(loginRedirectPath)
+	}
+
+	const handleRegisterSuccess = () => {
+		setShowRegisterModal(false)
 		navigate(loginRedirectPath)
 	}
 
@@ -222,7 +229,7 @@ export default function HomePage() {
 								</p>
 								<div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
 									<button
-										onClick={handleVerifyClick}
+										onClick={() => setShowRegisterModal(true)}
 										className="bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-50 transition-all duration-300 hover:scale-105 shadow-lg">
 										Get Started Free
 									</button>
@@ -400,6 +407,13 @@ export default function HomePage() {
 				isOpen={showLoginModal}
 				onClose={() => setShowLoginModal(false)}
 				onLoginSuccess={handleLoginSuccess}
+				onShowRegister={() => setShowRegisterModal(true)}
+			/>
+
+			<RegisterModal
+				isOpen={showRegisterModal}
+				onClose={() => setShowRegisterModal(false)}
+				onRegisterSuccess={handleRegisterSuccess}
 			/>
 		</>
 	)

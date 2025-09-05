@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNotification } from '../../contexts/NotificationContext';
 
 
-export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
+export default function LoginModal({ isOpen, onClose, onLoginSuccess, onShowRegister, onShowForgotPassword }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -19,12 +19,12 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (success) {
+      const result = await login(email, password);
+      if (result.success) {
         addNotification({
           type: 'success',
           title: 'Login Successful',
-          message: 'Welcome to AuthScan platform'
+          message: `Welcome back, ${result.user.name}!`
         });
         if (onLoginSuccess) {
           onLoginSuccess();
@@ -37,7 +37,7 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
         addNotification({
           type: 'error',
           title: 'Login Failed',
-          message: 'Invalid credentials. Please try again.'
+          message: result.error || 'Invalid credentials. Please try again.'
         });
       }
     } catch (error) {
@@ -131,6 +131,20 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
                   </div>
                 </div>
 
+                {/* Forgot Password Link */}
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (onShowForgotPassword) onShowForgotPassword();
+                    }}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+
                 {/* Demo Credentials */}
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                   <div className="flex items-center space-x-2 mb-3">
@@ -171,7 +185,20 @@ export default function LoginModal({ isOpen, onClose, onLoginSuccess }) {
               </form>
 
               {/* Footer */}
-              <div className="mt-8 pt-6 border-t border-gray-200 text-center">
+              <div className="mt-8 pt-6 border-t border-gray-200 text-center space-y-4">
+                <p className="text-sm text-gray-500">
+                  Don't have an account?{' '}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      if (onShowRegister) onShowRegister();
+                    }}
+                    className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    Create one here
+                  </button>
+                </p>
                 <p className="text-sm text-gray-500">
                   Secure authentication powered by{' '}
                   <span className="font-semibold text-blue-600">AuthScan</span>
