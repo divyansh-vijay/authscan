@@ -39,7 +39,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto text-center">
-          <Badge className="mb-6 bg-primary/10 text-primary border-primary/20">Blockchain-Powered Verification : )</Badge>
+          <Badge className="mb-6 bg-primary/10 text-primary border-primary/20">Blockchain-Powered Verification</Badge>
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-balance">
             Verify Certificate
             <span className="text-primary"> Authenticity</span>
