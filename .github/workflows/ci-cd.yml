@@ -33,34 +33,37 @@ jobs:
 
             - name: Deploy to VPS
               run: |
-                  ssh $VPS_USER@$VPS_HOST << EOF
-                    set -e  # exit on error
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                ssh $VPS_USER@$VPS_HOST << 'EOF'
+                  set -e
+                  export NVM_DIR="$HOME/.nvm"
+                  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                  [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
-                    echo "📁 Switching to project directory"
-                    cd /var/www/authscan
+                  nvm install 18 --lts
+                  nvm use 18
 
-                    echo "🔄 Stashing and pulling latest changes"
-                    git stash
-                    git pull origin main
+                  echo "📁 Switching to project directory"
+                  cd /var/www/authscan
 
-                    # Detect changes in dependencies
-                    CHANGED=\$(git diff --name-only HEAD@{1} HEAD | grep -E 'package(-lock)?\.json' || true)
+                  echo "🔄 Stashing and pulling latest changes"
+                  git stash || true
+                  git pull origin main
 
-                    if [ -n "\$CHANGED" ]; then
-                      echo "📦 Dependencies changed. Reinstalling..."
-                      rm -rf node_modules
-                      npm ci --legacy-peer-deps
-                    else
-                      echo "✅ No dependency changes. Skipping npm install."
-                    fi
+                  CHANGED=$(git diff --name-only HEAD@{1} HEAD | grep -E 'package(-lock)?\.json' || true)
+                  if [ -n "$CHANGED" ]; then
+                    echo "📦 Dependencies changed. Reinstalling..."
+                    rm -rf node_modules
+                    npm ci --legacy-peer-deps
+                  else
+                    echo "✅ No dependency changes. Skipping npm install."
+                  fi
 
-                    echo "🔧 Building project"
-                    npm run build
+                  echo "🔧 Building project"
+                  npm run build
 
-                    echo "🚀 Restarting with PM2"
-                    pm2 restart authscan || pm2 start npm --name "authscan" -- start
+                  echo "🚀 Restarting with PM2"
+                  pm2 restart authscan || pm2 start npm --name "authscan" -- start
 
-                    echo "✅ Deployment completed successfully!"
-                  EOF
+                  echo "✅ Deployment completed successfully!"
+                EOF
+
