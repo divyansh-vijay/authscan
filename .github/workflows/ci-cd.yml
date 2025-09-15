@@ -1,0 +1,64 @@
+name: CI/CD Pipeline
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        branches:
+            - main
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        environment:
+            name: production
+            url: https://authscan.divyanshvijay.in
+
+        env:
+            VPS_USER: ${{ secrets.VPS_USER }}
+            VPS_HOST: ${{ secrets.VPS_HOST }}
+
+        steps:
+            - name: Setup SSH
+              uses: webfactory/ssh-agent@v0.9.0
+              with:
+                  ssh-private-key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+
+            - name: Add host key
+              run: |
+                  mkdir -p ~/.ssh
+                  ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+            - name: Deploy to VPS
+              run: |
+                  ssh $VPS_USER@$VPS_HOST << EOF
+                    set -e  # exit on error
+
+                    echo "📁 Switching to project directory"
+                    cd /var/www/authscan
+
+                    echo "🔄 Stashing and pulling latest changes"
+                    git stash
+                    git pull origin main
+
+                    # Detect changes in dependencies
+                    CHANGED=\$(git diff --name-only HEAD@{1} HEAD | grep -E 'package(-lock)?\.json' || true)
+
+                    if [ -n "\$CHANGED" ]; then
+                      echo "📦 Dependencies changed. Reinstalling..."
+                      rm -rf node_modules
+                      npm ci --legacy-peer-deps
+                    else
+                      echo "✅ No dependency changes. Skipping npm install."
+                    fi
+
+                    echo "🔧 Building project"
+                    npm run build
+
+                    echo "🚀 Restarting with PM2"
+                    pm2 restart authscan || pm2 start npm --name "authscan" -- start
+
+                    echo "✅ Deployment completed successfully!"
+                  EOF
