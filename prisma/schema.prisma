@@ -1,15 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-// schema.prisma
-
-// prisma/schema.prisma
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url      = "postgresql://postgres:admin@localhost:5432/authscan?schema=public"
 }
 
 generator client {
@@ -27,51 +18,209 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  institute   Institute?   // Only if role = INSTITUTE
-  documents   Document[]
-  verifications Verification[]
+  institute          Institute?
+  documents          Document[]
+  verifications      Verification[]
+  issuedCertificates Certificate[]  @relation("IssuedBy")
+  ownedCertificates  Certificate[]  @relation("StudentCertificates")
+  BatchUpload        BatchUpload[]
 }
 
 model Institute {
-  id             String   @id @default(uuid())
-  instituteName  String
-  userId         String   @unique
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id            String   @id @default(uuid())
+  instituteName String
+  instituteCode String   @unique // For certificate identification
+  address       String?
+  phone         String?
+  website       String?
+  logoUrl       String?
+  userId        String   @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // Relations
-  user       User     @relation(fields: [userId], references: [id])
-  documents  Document[]
+  user         User          @relation(fields: [userId], references: [id])
+  documents    Document[]
+  certificates Certificate[]
+  programs     Program[]
+  apiKeys      ApiKey[]
+}
 
-  
+model Program {
+  id          String   @id @default(uuid())
+  name        String
+  code        String
+  duration    String?
+  description String?
+  instituteId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  institute    Institute     @relation(fields: [instituteId], references: [id])
+  certificates Certificate[]
+
+  @@unique([code, instituteId])
+}
+
+model Certificate {
+  id              String            @id @default(uuid())
+  certificateId   String            @unique // Human readable ID like CERT-2024-101
+  studentName     String
+  studentEmail    String
+  program         String
+  programCode     String?
+  issueDate       DateTime
+  grade           String?
+  duration        String?
+  description     String?
+  status          CertificateStatus @default(PENDING)
+  blockchainTx    String?
+  certificateHash String            @unique
+  fileUrl         String? // Minio URL for certificate file
+  metadata        Json? // Additional certificate data
+
+  // Foreign keys
+  instituteId String
+  issuedById  String
+  studentId   String?
+  programId   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  institute     Institute      @relation(fields: [instituteId], references: [id])
+  issuedBy      User           @relation("IssuedBy", fields: [issuedById], references: [id])
+  student       User?          @relation("StudentCertificates", fields: [studentId], references: [id])
+  programRef    Program?       @relation(fields: [programId], references: [id])
+  verifications Verification[]
+  batchUpload   BatchUpload?   @relation(fields: [batchUploadId], references: [id])
+  batchUploadId String?
+
+  @@index([instituteId])
+  @@index([studentEmail])
+  @@index([certificateId])
+}
+
+model BatchUpload {
+  id           String            @id @default(uuid())
+  fileName     String
+  totalCount   Int
+  successCount Int               @default(0)
+  failedCount  Int               @default(0)
+  status       BatchUploadStatus @default(PROCESSING)
+  uploadedById String
+  instituteId  String
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Relations
+  uploadedBy   User               @relation(fields: [uploadedById], references: [id])
+  certificates Certificate[]
+  errors       BatchUploadError[]
+}
+
+model BatchUploadError {
+  id            String   @id @default(uuid())
+  batchUploadId String
+  rowNumber     Int
+  errorMessage  String
+  rowData       Json
+  createdAt     DateTime @default(now())
+
+  // Relations
+  batchUpload BatchUpload @relation(fields: [batchUploadId], references: [id])
 }
 
 model Document {
   id           String   @id @default(uuid())
   title        String
   url          String
+  fileType     String
+  fileSize     Int?
   uploadedById String
+  instituteId  String?
   createdAt    DateTime @default(now())
 
   // Relations
-  uploadedBy User      @relation(fields: [uploadedById], references: [id])
+  uploadedBy User       @relation(fields: [uploadedById], references: [id])
   institute  Institute? @relation(fields: [instituteId], references: [id])
-
-  instituteId String?
 }
 
 model Verification {
-  id        String   @id @default(uuid())
-  status    String   @default("PENDING")
-  userId    String
-  createdAt DateTime @default(now())
+  id            String             @id @default(uuid())
+  certificateId String
+  verifierType  VerifierType
+  verifierName  String
+  verifierEmail String?
+  verifierOrg   String?
+  result        VerificationResult @default(PENDING)
+  ipAddress     String?
+  userAgent     String?
+  location      String?
+  metadata      Json?
+  userId        String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   // Relations
-  user User @relation(fields: [userId], references: [id])
+  certificate Certificate @relation(fields: [certificateId], references: [id])
+  user        User?       @relation(fields: [userId], references: [id])
+
+  @@index([certificateId])
+  @@index([result])
+  @@index([createdAt])
 }
 
+model ApiKey {
+  id          String    @id @default(uuid())
+  name        String
+  keyHash     String    @unique
+  isActive    Boolean   @default(true)
+  lastUsed    DateTime?
+  usageCount  Int       @default(0)
+  instituteId String
+  createdAt   DateTime  @default(now())
+  expiresAt   DateTime?
+
+  // Relations
+  institute Institute @relation(fields: [instituteId], references: [id])
+}
+
+// Enums
 enum Role {
   USER
   INSTITUTE
   ADMIN
+}
+
+enum CertificateStatus {
+  PENDING
+  ISSUED
+  REVOKED
+  EXPIRED
+}
+
+enum BatchUploadStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
+
+enum VerifierType {
+  STUDENT
+  EMPLOYER
+  INSTITUTION
+  GOVERNMENT
+  OTHER
+}
+
+enum VerificationResult {
+  PENDING
+  VERIFIED
+  FAILED
+  EXPIRED
+  REVOKED
 }
