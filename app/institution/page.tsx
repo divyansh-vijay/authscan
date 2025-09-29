@@ -1,4 +1,7 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -25,7 +28,54 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
+async function getJSON(url: string, options?: RequestInit) {
+  const res = await fetch(url, options)
+  const text = await res.text()
+  try {
+    return { status: res.status, json: JSON.parse(text) }
+  } catch {
+    return { status: res.status, json: { error: text } }
+  }
+}
+
 export default function InstitutionPortal() {
+
+  const [studentName, setStudentName] = useState("")
+  const [program, setProgram] = useState("")
+  const [issueDate, setIssueDate] = useState("")
+  const [grade, setGrade] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [response, setResponse] = useState<any>(null)
+
+  const baseUrl = "http://localhost:5000"
+
+  const handleIssue = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setResponse(null)
+
+    const data = {
+      studentName,
+      courseName: program,
+      issueDate,
+      grade: grade || "N/A",
+    }
+
+    const { status, json } = await getJSON(`${baseUrl}/api/issue-certificate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+
+    setLoading(false)
+    setResponse(json)
+    if (status === 200 && json.success) {
+      alert("Issued!")
+    } else {
+      alert(`Issue failed: ${json.error || status}`)
+    }
+  }
+   
   // Mock data for demonstration
   const recentCertificates = [
     {
@@ -332,7 +382,7 @@ export default function InstitutionPortal() {
 
           {/* Single Issue Tab */}
           <TabsContent value="single-issue" className="space-y-6">
-            <Card className="glass-card">
+            {/* <Card className="glass-card">
               <CardHeader>
                 <CardTitle>Issue Single Certificate</CardTitle>
                 <CardDescription>Create and issue a certificate for an individual student</CardDescription>
@@ -343,10 +393,7 @@ export default function InstitutionPortal() {
                     <Label htmlFor="studentName">Student Name</Label>
                     <Input id="studentName" placeholder="Enter student's full name" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="studentEmail">Student Email</Label>
-                    <Input id="studentEmail" type="email" placeholder="student@example.com" />
-                  </div>
+                 
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4">
@@ -370,24 +417,14 @@ export default function InstitutionPortal() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Certificate Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Enter certificate description or additional details"
-                    rows={3}
-                  />
-                </div>
+          
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="grade">Grade/GPA (Optional)</Label>
                     <Input id="grade" placeholder="e.g., A, 3.8, Pass" />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="duration">Program Duration</Label>
-                    <Input id="duration" placeholder="e.g., 4 years, 6 months" />
-                  </div>
+               
                 </div>
 
                 <div className="flex space-x-4">
@@ -400,7 +437,83 @@ export default function InstitutionPortal() {
                   </Button>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
+            <form onSubmit={handleIssue}>
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle>Issue Single Certificate</CardTitle>
+          <CardDescription>
+            Create and issue a certificate for an individual student
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="studentName">Student Name</Label>
+              <Input
+                id="studentName"
+                placeholder="Enter student's full name"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="program">Program/Course</Label>
+              <Select value={program} onValueChange={setProgram}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select program" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Computer Science">Computer Science</SelectItem>
+                  <SelectItem value="Data Science">Data Science</SelectItem>
+                  <SelectItem value="Web Development">Web Development</SelectItem>
+                  <SelectItem value="Cybersecurity">Cybersecurity</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="issueDate">Issue Date</Label>
+              <Input
+                id="issueDate"
+                type="date"
+                value={issueDate}
+                onChange={(e) => setIssueDate(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="grade">Grade/GPA (Optional)</Label>
+              <Input
+                id="grade"
+                placeholder="e.g., A, 3.8, Pass"
+                value={grade}
+                onChange={(e) => setGrade(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex space-x-4">
+            <Button type="submit" className="flex-1" disabled={loading}>
+              <Plus className="w-4 h-4 mr-2" />
+              {loading ? "Issuing..." : "Issue Certificate"}
+            </Button>
+            <Button type="button" variant="outline" className="bg-transparent">
+              Save as Draft
+            </Button>
+          </div>
+
+          {response && (
+            <pre className="bg-muted p-3 rounded-md text-sm overflow-auto">
+              {JSON.stringify(response, null, 2)}
+            </pre>
+          )}
+        </CardContent>
+      </Card>
+    </form>
           </TabsContent>
 
           {/* Analytics Tab */}
