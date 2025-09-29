@@ -7,10 +7,12 @@ const getInstituteIdFromRequest = async (): Promise<string> => {
     // Replace this with your actual session management logic
     // For now, returning a placeholder. You must have an institute in your DB.
     // e.g., return 'clx...';
-    return "YOUR_INSTITUTE_ID";
+    return "6aad35db-5ed1-41d8-8c5f-bc8434ac3d48";
 };
 
 export async function GET(request: Request) {
+    console.log("Full URL:", request.url)
+// console.log("Action param:", action)
     try {
         const instituteId = await getInstituteIdFromRequest();
         if (!instituteId) {
@@ -19,6 +21,7 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const action = searchParams.get('action');
+        console.log(action)
 
         switch (action) {
             case 'stats':
