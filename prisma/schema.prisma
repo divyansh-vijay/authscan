@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:postgres@localhost:5432/authscan?schema=public"
+  url      = "postgresql://postgres:admin@localhost:5432/authscan?schema=public"
 }
 
 generator client {
@@ -66,6 +66,11 @@ model Program {
 model Certificate {
   id              String            @id @default(uuid())
   certificateId   String            @unique // Human readable ID like CERT-2024-101
+  title           String?
+  motherName      String?
+  fatherName      String?
+  rollNumber      String?
+  marksorgrade    String?
   studentName     String
   transactionHash String?
   blockNumber     Int?

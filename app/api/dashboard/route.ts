@@ -1,23 +1,15 @@
 import { NextResponse } from "next/server";
 import { DashboardService } from "@/lib/institution-portal";
-
-// A mock function to get the current user's instituteId
-// In a real app, this would come from an authentication session.
-const getInstituteIdFromRequest = async (): Promise<string> => {
-    // Replace this with your actual session management logic
-    // For now, returning a placeholder. You must have an institute in your DB.
-    // e.g., return 'clx...';
-    return "9b2e91b2-7c0e-4ee8-9869-5ab64b2a6cac";
-};
+import { getAuthDetailsFromRequest } from "@/lib/auth";
 
 export async function GET(request: Request) {
-    console.log("Full URL:", request.url)
-// console.log("Action param:", action)
     try {
-        const instituteId = await getInstituteIdFromRequest();
-        if (!instituteId) {
+        const authDetails = await getAuthDetailsFromRequest(request);
+        console.log({ authDetails })
+        if (!authDetails) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
+        const { instituteId } = authDetails;
 
         const { searchParams } = new URL(request.url);
         const action = searchParams.get('action');

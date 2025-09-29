@@ -95,14 +95,16 @@ interface AnalyticsData {
 }
 
 interface SingleIssueFormState {
+	title: string
 	studentName: string
-	// studentEmail: string
+	studentEmail: string
 	courseName: string
 	issueDate: string
-	// description: string
-	grade: string
-	// duration: string
 	institution: string
+	motherName: string
+	fatherName: string
+	rollNumber: string
+	marksorgrade: string
 }
 
 // --- Helper Components ---
@@ -318,11 +320,14 @@ export default function InstitutionPortal() {
 	const [formState, setFormState] = useState<SingleIssueFormState>({
 		studentName: "",
 		courseName: "",
+		studentEmail: "",
 		issueDate: "",
-		// description: "",
-		grade: "",
-		// duration: "",
+		title: "",
+		motherName: "",
+		fatherName: "",
+		rollNumber: "",
 		institution: "",
+		marksorgrade: "",
 	})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [batchFiles, setBatchFiles] = useState<FileList | null>(null)
@@ -340,10 +345,38 @@ export default function InstitutionPortal() {
 				setIsLoading(true)
 				const [statsRes, certsRes, logsRes, analyticsRes] =
 					await Promise.all([
-						fetch("/api/dashboard?action=stats"),
-						fetch("/api/dashboard?action=recent-certificates"),
-						fetch("/api/dashboard?action=verification-logs"),
-						fetch("/api/analytics"),
+						fetch("/api/dashboard?action=stats", {
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${localStorage.getItem(
+									"token"
+								)}`,
+							},
+						}),
+						fetch("/api/dashboard?action=recent-certificates", {
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${localStorage.getItem(
+									"token"
+								)}`,
+							},
+						}),
+						fetch("/api/dashboard?action=verification-logs", {
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${localStorage.getItem(
+									"token"
+								)}`,
+							},
+						}),
+						fetch("/api/analytics", {
+							headers: {
+								"Content-Type": "application/json",
+								Authorization: `Bearer ${localStorage.getItem(
+									"token"
+								)}`,
+							},
+						}),
 					])
 				setStats(await statsRes.json())
 				setRecentCertificates(await certsRes.json())
@@ -375,24 +408,37 @@ export default function InstitutionPortal() {
 		try {
 			const response = await fetch(`/api/certificates`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${localStorage.getItem("token")}`,
+				},
 				body: JSON.stringify(formState),
 			})
 			if (!response.ok) throw new Error("Failed to issue certificate")
 			alert("Certificate issued successfully!")
 			setFormState({
 				studentName: "",
-				// studentEmail: "",
 				courseName: "",
+				studentEmail: "",
 				issueDate: "",
-				// description: "",
-				grade: "",
-				// duration: "",
+				title: "",
+				motherName: "",
+				fatherName: "",
+				rollNumber: "",
 				institution: "",
+				marksorgrade: "",
 			})
 			// Refresh recent certificates
 			const certsRes = await fetch(
-				"/api/dashboard?action=recent-certificates"
+				"/api/dashboard?action=recent-certificates",
+				{
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${localStorage.getItem(
+							"token"
+						)}`,
+					},
+				}
 			)
 			setRecentCertificates(await certsRes.json())
 		} catch (error) {
@@ -420,6 +466,9 @@ export default function InstitutionPortal() {
 		try {
 			const response = await fetch("/api/certificates", {
 				method: "PUT",
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("token")}`,
+				},
 				body: formData,
 			})
 			const result = await response.json()
@@ -522,7 +571,7 @@ export default function InstitutionPortal() {
 				</div>
 
 				<Tabs defaultValue="dashboard" className="space-y-6">
-					<TabsList className="grid w-full grid-cols-5">
+					<TabsList className="grid w-full grid-cols-4">
 						<TabsTrigger value="dashboard">Dashboard</TabsTrigger>
 						<TabsTrigger value="batch-upload">
 							Batch Upload
@@ -531,9 +580,9 @@ export default function InstitutionPortal() {
 							Issue Certificate
 						</TabsTrigger>
 						<TabsTrigger value="analytics">Analytics</TabsTrigger>
-						<TabsTrigger value="api-docs">
+						{/* <TabsTrigger value="api-docs">
 							API Integration
-						</TabsTrigger>
+						</TabsTrigger> */}
 					</TabsList>
 
 					{/* Dashboard */}
@@ -545,7 +594,7 @@ export default function InstitutionPortal() {
 								</CardHeader>
 								<CardContent>
 									<div className="space-y-4">
-										{recentCertificates.length > 0 &&
+										{recentCertificates.length > 0 ? (
 											recentCertificates.map((cert) => (
 												<div
 													key={cert.id}
@@ -569,7 +618,12 @@ export default function InstitutionPortal() {
 														</p>
 													</div>
 												</div>
-											))}
+											))
+										) : (
+											<p className="text-muted-foreground text-center">
+												No recent certificates
+											</p>
+										)}
 									</div>
 								</CardContent>
 							</Card>
@@ -591,30 +645,31 @@ export default function InstitutionPortal() {
 												</p>
 											)}
 										</div>
-										{verificationLogs.map((log) => (
-											<div
-												key={log.id}
-												className="flex items-center justify-between p-3 border rounded-lg">
-												<div>
-													<p className="font-medium">
-														{log.verifierName}
-													</p>
-													<p className="text-sm text-muted-foreground">
-														{log.verifierType}
-													</p>
+										{verificationLogs.length > 0 &&
+											verificationLogs.map((log) => (
+												<div
+													key={log.id}
+													className="flex items-center justify-between p-3 border rounded-lg">
+													<div>
+														<p className="font-medium">
+															{log.verifierName}
+														</p>
+														<p className="text-sm text-muted-foreground">
+															{log.verifierType}
+														</p>
+													</div>
+													<div className="text-right">
+														<StatusBadge
+															status={log.result}
+														/>
+														<p className="text-xs text-muted-foreground mt-1">
+															{new Date(
+																log.createdAt
+															).toLocaleString()}
+														</p>
+													</div>
 												</div>
-												<div className="text-right">
-													<StatusBadge
-														status={log.result}
-													/>
-													<p className="text-xs text-muted-foreground mt-1">
-														{new Date(
-															log.createdAt
-														).toLocaleString()}
-													</p>
-												</div>
-											</div>
-										))}
+											))}
 									</div>
 								</CardContent>
 							</Card>
@@ -718,6 +773,15 @@ export default function InstitutionPortal() {
 									className="space-y-6">
 									<div className="grid md:grid-cols-2 gap-4">
 										<div className="flex flex-col gap-2">
+											<Label htmlFor="title">Title</Label>
+											<Input
+												id="title"
+												value={formState.title}
+												onChange={handleFormChange}
+												required
+											/>
+										</div>
+										<div className="flex flex-col gap-2">
 											<Label htmlFor="studentName">
 												Student Name
 											</Label>
@@ -782,12 +846,12 @@ export default function InstitutionPortal() {
 									</div>
 									<div className="grid md:grid-cols-2 gap-4">
 										<div className="flex flex-col gap-2">
-											<Label htmlFor="grade">
-												Grade (Optional)
+											<Label htmlFor="studentEmail">
+												Student Email (Optional)
 											</Label>
 											<Input
-												id="grade"
-												value={formState.grade}
+												id="studentEmail"
+												value={formState.studentEmail}
 												onChange={handleFormChange}
 											/>
 										</div>
@@ -817,36 +881,44 @@ export default function InstitutionPortal() {
 									<CardTitle>Issuance Analytics</CardTitle>
 								</CardHeader>
 								<CardContent className="h-80">
-									<ResponsiveContainer
-										width="100%"
-										height="100%">
-										<BarChart
-											data={
-												analyticsData?.issuanceByMonth
-											}>
-											<XAxis
-												dataKey="month"
-												fontSize={12}
-												tickLine={false}
-												axisLine={false}
-											/>
-											<YAxis
-												dataKey={"count"}
-												fontSize={12}
-												tickLine={true}
-												axisLine={true}
-												interval={1}
-											/>
-											<Tooltip />
-											<Legend />
-											<Bar
-												dataKey="count"
-												fill="#8884d8"
-												name="Issued"
-												radius={[4, 4, 0, 0]}
-											/>
-										</BarChart>
-									</ResponsiveContainer>
+									{analyticsData?.issuanceByMonth &&
+									analyticsData?.issuanceByMonth.length >
+										0 ? (
+										<ResponsiveContainer
+											width="100%"
+											height="100%">
+											<BarChart
+												data={
+													analyticsData?.issuanceByMonth
+												}>
+												<XAxis
+													dataKey="month"
+													fontSize={12}
+													tickLine={false}
+													axisLine={false}
+												/>
+												<YAxis
+													dataKey={"count"}
+													fontSize={12}
+													tickLine={true}
+													axisLine={true}
+													interval={1}
+												/>
+												<Tooltip />
+												<Legend />
+												<Bar
+													dataKey="count"
+													fill="#8884d8"
+													name="Issued"
+													radius={[4, 4, 0, 0]}
+												/>
+											</BarChart>
+										</ResponsiveContainer>
+									) : (
+										<p className="text-muted-foreground text-center">
+											No issuance activity
+										</p>
+									)}
 								</CardContent>
 							</Card>
 							<Card className="glass-card">
@@ -944,9 +1016,9 @@ export default function InstitutionPortal() {
 					</TabsContent>
 
 					{/* API Docs Tab (remains static) */}
-					<TabsContent value="api-docs">
-						{/* Static content from original file */}
-					</TabsContent>
+					{/* <TabsContent value="api-docs"> */}
+					{/* Static content from original file */}
+					{/* </TabsContent> */}
 				</Tabs>
 			</div>
 		</div>
