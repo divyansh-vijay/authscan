@@ -47,12 +47,13 @@ export async function PUT(request) {
         }
 
         const results = [];
-        for (const file of files) {
-            const result = await BatchUploadService.processBatchUpload(instituteId, userId, file.buffer, file.name, file.type);
-            results.push(result);
-        }
-
-        return NextResponse.json(results, { status: 200 });
+        const result = await BatchUploadService.processBatchUpload(instituteId, userId, files);
+        // for (const file of files) {
+        //     results.push(result);
+        //     console.log({ result })
+        // }
+        console.log({ result })
+        return NextResponse.json(result, { status: 200 });
 
     } catch (error) {
         console.error("API Batch Upload Error:", error);

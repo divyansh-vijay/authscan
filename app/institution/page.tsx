@@ -175,6 +175,10 @@ export default function InstitutionPortal() {
 		null
 	)
 
+	const [uploadedCertErrors, setUploadedCertErrors] = useState<
+		{ name: string; error: string }[]
+	>([])
+
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
@@ -267,6 +271,8 @@ export default function InstitutionPortal() {
 			setBatchUploadStatus(
 				`Upload Complete: ${result.successCount} succeeded, ${result.failedCount} failed.`
 			)
+			console.log(result.failedFiles)
+			setUploadedCertErrors(result.failedFiles)
 		} catch (error: any) {
 			console.error(error)
 			setBatchUploadStatus(`Error: ${error.message}`)
@@ -377,30 +383,31 @@ export default function InstitutionPortal() {
 								</CardHeader>
 								<CardContent>
 									<div className="space-y-4">
-										{recentCertificates.map((cert) => (
-											<div
-												key={cert.id}
-												className="flex items-center justify-between p-3 border rounded-lg">
-												<div>
-													<p className="font-medium">
-														{cert.studentName}
-													</p>
-													<p className="text-sm text-muted-foreground">
-														{cert.program}
-													</p>
+										{recentCertificates.length > 0 &&
+											recentCertificates.map((cert) => (
+												<div
+													key={cert.id}
+													className="flex items-center justify-between p-3 border rounded-lg">
+													<div>
+														<p className="font-medium">
+															{cert.studentName}
+														</p>
+														<p className="text-sm text-muted-foreground">
+															{cert.program}
+														</p>
+													</div>
+													<div className="text-right">
+														<StatusBadge
+															status={cert.status}
+														/>
+														<p className="text-xs text-muted-foreground mt-1">
+															{new Date(
+																cert.issueDate
+															).toLocaleDateString()}
+														</p>
+													</div>
 												</div>
-												<div className="text-right">
-													<StatusBadge
-														status={cert.status}
-													/>
-													<p className="text-xs text-muted-foreground mt-1">
-														{new Date(
-															cert.issueDate
-														).toLocaleDateString()}
-													</p>
-												</div>
-											</div>
-										))}
+											))}
 									</div>
 								</CardContent>
 							</Card>
@@ -492,6 +499,31 @@ export default function InstitutionPortal() {
 										{batchUploadStatus}
 									</p>
 								)}
+								<div className="flex flex-col gap-2">
+									{uploadedCertErrors &&
+										uploadedCertErrors.map(
+											(error, index) => (
+												<div
+													key={index}
+													className="flex flex-row justify-between w-full items-center border rounded-md px-2">
+													<p
+														key={index}
+														className="text-center text-sm text-destructive">
+														{index + 1}.{" "}
+														{error.name}
+													</p>
+													<p
+														key={index}
+														className="text-center text-sm text-destructive">
+														{error.error.substring(
+															0,
+															50
+														)}
+													</p>
+												</div>
+											)
+										)}
+								</div>
 							</CardContent>
 						</Card>
 					</TabsContent>
@@ -710,29 +742,33 @@ export default function InstitutionPortal() {
 										</TableRow>
 									</TableHeader>
 									<TableBody>
-										{analyticsData?.programStats.map(
-											(stat) => (
-												<TableRow key={stat.program}>
-													<TableCell className="font-medium">
-														{stat.program}
-													</TableCell>
-													<TableCell>
-														{stat.issued}
-													</TableCell>
-													<TableCell>
-														{stat.verifications}
-													</TableCell>
-													<TableCell>
-														<Badge variant="outline">
-															{stat.successRate.toFixed(
-																1
-															)}
-															%
-														</Badge>
-													</TableCell>
-												</TableRow>
-											)
-										)}
+										{analyticsData?.programStats &&
+											analyticsData?.programStats
+												?.length > 0 &&
+											analyticsData?.programStats.map(
+												(stat) => (
+													<TableRow
+														key={stat.program}>
+														<TableCell className="font-medium">
+															{stat.program}
+														</TableCell>
+														<TableCell>
+															{stat.issued}
+														</TableCell>
+														<TableCell>
+															{stat.verifications}
+														</TableCell>
+														<TableCell>
+															<Badge variant="outline">
+																{stat.successRate.toFixed(
+																	1
+																)}
+																%
+															</Badge>
+														</TableCell>
+													</TableRow>
+												)
+											)}
 									</TableBody>
 								</Table>
 							</CardContent>

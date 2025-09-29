@@ -67,9 +67,13 @@ model Certificate {
   id              String            @id @default(uuid())
   certificateId   String            @unique // Human readable ID like CERT-2024-101
   studentName     String
-  studentEmail    String
-  program         String
+  transactionHash String?
+  blockNumber     Int?
+  uploadedOnchain Boolean           @default(false)
+  studentEmail    String?
+  courseName      String
   programCode     String?
+  organization    String?
   issueDate       DateTime
   grade           String?
   duration        String?
