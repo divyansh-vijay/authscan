@@ -7,7 +7,7 @@ const getInstituteIdFromRequest = async (): Promise<string> => {
     // Replace this with your actual session management logic
     // For now, returning a placeholder. You must have an institute in your DB.
     // e.g., return 'clx...';
-    return "YOUR_INSTITUTE_ID";
+    return "9b2e91b2-7c0e-4ee8-9869-5ab64b2a6cac";
 };
 
 export async function GET(request: Request) {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { AnalyticsService } from "@/lib/institution-portal";
 
-const getInstituteIdFromRequest = async (): Promise<string> => "YOUR_INSTITUTE_ID";
+const getInstituteIdFromRequest = async (): Promise<string> => "9b2e91b2-7c0e-4ee8-9869-5ab64b2a6cac";
 
 export async function GET() {
     try {

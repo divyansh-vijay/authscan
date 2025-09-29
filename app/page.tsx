@@ -209,8 +209,13 @@ export default function LandingPage() {
 			<nav className="relative z-50 px-6 py-4 bg-white shadow-sm">
 				<div className="max-w-7xl mx-auto flex items-center justify-between">
 					<div className="flex items-center space-x-2">
-						<div className="p-2 bg-slate-900 rounded-lg">
-							<Shield className="h-6 w-6 text-white" />
+						<div className=" rounded-lg">
+							<img
+								src="/emblem.png"
+								height={28}
+								width={28}
+								alt=""
+							/>{" "}
 						</div>
 						<span className="text-2xl font-bold text-slate-900">
 							AuthScan

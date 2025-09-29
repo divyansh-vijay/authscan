@@ -302,7 +302,12 @@ export default function InstitutionPortal() {
 				<div className="container mx-auto px-4 py-4">
 					<div className="flex items-center justify-between">
 						<a href="/" className="flex items-center space-x-2">
-							<Shield className="h-8 w-8 text-primary" />
+							<img
+								src="/emblem.png"
+								height={28}
+								width={28}
+								alt=""
+							/>
 							<span className="text-2xl font-bold text-primary">
 								AuthScan
 							</span>
@@ -416,7 +421,17 @@ export default function InstitutionPortal() {
 									<CardTitle>Verification Activity</CardTitle>
 								</CardHeader>
 								<CardContent>
-									<div className="space-y-4">
+									<div
+										className={`space-y-4 ${
+											verificationLogs.length === 0
+												? "flex items-center justify-center"
+												: ""
+										}`}>
+										{verificationLogs.length === 0 && (
+											<p className="text-muted-foreground">
+												No verification activity
+											</p>
+										)}
 										{verificationLogs.map((log) => (
 											<div
 												key={log.id}
