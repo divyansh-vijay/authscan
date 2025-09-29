@@ -173,6 +173,10 @@ export default function InstitutionPortal() {
     null
   );
 
+	const [uploadedCertErrors, setUploadedCertErrors] = useState<
+		{ name: string; error: string }[]
+	>([])
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -254,29 +258,32 @@ export default function InstitutionPortal() {
       formData.append(file.name, file);
     });
 
-    try {
-      const response = await fetch("/api/certificates", {
-        method: "PUT",
-        body: formData,
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Batch upload failed");
-      setBatchUploadStatus(
-        `Upload Complete: ${result.successCount} succeeded, ${result.failedCount} failed.`
-      );
-    } catch (error: any) {
-      console.error(error);
-      setBatchUploadStatus(`Error: ${error.message}`);
-    } finally {
-      setIsSubmitting(false);
-      setBatchFiles(null);
-      // Optionally clear the file input
-      const fileInput = document.getElementById(
-        "batch-file-input"
-      ) as HTMLInputElement;
-      if (fileInput) fileInput.value = "";
-    }
-  };
+		try {
+			const response = await fetch("/api/certificates", {
+				method: "PUT",
+				body: formData,
+			})
+			const result = await response.json()
+			if (!response.ok)
+				throw new Error(result.error || "Batch upload failed")
+			setBatchUploadStatus(
+				`Upload Complete: ${result.successCount} succeeded, ${result.failedCount} failed.`
+			)
+			console.log(result.failedFiles)
+			setUploadedCertErrors(result.failedFiles)
+		} catch (error: any) {
+			console.error(error)
+			setBatchUploadStatus(`Error: ${error.message}`)
+		} finally {
+			setIsSubmitting(false)
+			setBatchFiles(null)
+			// Optionally clear the file input
+			const fileInput = document.getElementById(
+				"batch-file-input"
+			) as HTMLInputElement
+			if (fileInput) fileInput.value = ""
+		}
+	}
 
   if (isLoading) {
     return (
@@ -354,119 +361,159 @@ export default function InstitutionPortal() {
             <TabsTrigger value="api-docs">API Integration</TabsTrigger>
           </TabsList>
 
-          {/* Dashboard */}
-          <TabsContent value="dashboard" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle>Recent Certificates</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {recentCertificates.map((cert) => (
-                      <div
-                        key={cert.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{cert.studentName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {cert.courseName}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <StatusBadge status={cert.status} />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(cert.issueDate).toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle>Verification Activity</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {verificationLogs.map((log) => (
-                      <div
-                        key={log.id}
-                        className="flex items-center justify-between p-3 border rounded-lg"
-                      >
-                        <div>
-                          <p className="font-medium">{log.verifierName}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {log.verifierType}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <StatusBadge status={log.result} />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(log.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
+					{/* Dashboard */}
+					<TabsContent value="dashboard" className="space-y-6">
+						<div className="grid lg:grid-cols-2 gap-6">
+							<Card className="glass-card">
+								<CardHeader>
+									<CardTitle>Recent Certificates</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="space-y-4">
+										{recentCertificates.length > 0 &&
+											recentCertificates.map((cert) => (
+												<div
+													key={cert.id}
+													className="flex items-center justify-between p-3 border rounded-lg">
+													<div>
+														<p className="font-medium">
+															{cert.studentName}
+														</p>
+														<p className="text-sm text-muted-foreground">
+															{cert.program}
+														</p>
+													</div>
+													<div className="text-right">
+														<StatusBadge
+															status={cert.status}
+														/>
+														<p className="text-xs text-muted-foreground mt-1">
+															{new Date(
+																cert.issueDate
+															).toLocaleDateString()}
+														</p>
+													</div>
+												</div>
+											))}
+									</div>
+								</CardContent>
+							</Card>
+							<Card className="glass-card">
+								<CardHeader>
+									<CardTitle>Verification Activity</CardTitle>
+								</CardHeader>
+								<CardContent>
+									<div className="space-y-4">
+										{verificationLogs.map((log) => (
+											<div
+												key={log.id}
+												className="flex items-center justify-between p-3 border rounded-lg">
+												<div>
+													<p className="font-medium">
+														{log.verifierName}
+													</p>
+													<p className="text-sm text-muted-foreground">
+														{log.verifierType}
+													</p>
+												</div>
+												<div className="text-right">
+													<StatusBadge
+														status={log.result}
+													/>
+													<p className="text-xs text-muted-foreground mt-1">
+														{new Date(
+															log.createdAt
+														).toLocaleString()}
+													</p>
+												</div>
+											</div>
+										))}
+									</div>
+								</CardContent>
+							</Card>
+						</div>
+					</TabsContent>
 
-          {/* Batch Upload */}
-          <TabsContent value="batch-upload">
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle>Batch Certificate Upload</CardTitle>
-                <CardDescription>
-                  Upload multiple certificate files (PDF or Images) for batch
-                  processing.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center">
-                  <File className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">
-                    Upload Certificate Files
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Select multiple PDF or image files to issue in bulk.
-                  </p>
-                  <Input
-                    id="batch-file-input"
-                    type="file"
-                    multiple
-                    accept="application/pdf,image/*"
-                    onChange={(e) => setBatchFiles(e.target.files)}
-                    className="mx-auto max-w-xs"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  onClick={handleBatchUpload}
-                  disabled={isSubmitting || !batchFiles}
-                >
-                  {isSubmitting ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4 mr-2" />
-                  )}
-                  {isSubmitting
-                    ? "Processing..."
-                    : `Upload ${batchFiles?.length || 0} File(s)`}
-                </Button>
-                {batchUploadStatus && (
-                  <p className="text-center text-sm text-muted-foreground mt-4">
-                    {batchUploadStatus}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+					{/* Batch Upload */}
+					<TabsContent value="batch-upload">
+						<Card className="glass-card">
+							<CardHeader>
+								<CardTitle>Batch Certificate Upload</CardTitle>
+								<CardDescription>
+									Upload multiple certificate files (PDF or
+									Images) for batch processing.
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								<div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-12 text-center">
+									<File className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+									<h3 className="text-lg font-semibold mb-2">
+										Upload Certificate Files
+									</h3>
+									<p className="text-muted-foreground mb-4">
+										Select multiple PDF or image files to
+										issue in bulk.
+									</p>
+									<Input
+										id="batch-file-input"
+										type="file"
+										multiple
+										accept="application/pdf,image/*"
+										onChange={(e) =>
+											setBatchFiles(e.target.files)
+										}
+										className="mx-auto max-w-xs"
+									/>
+								</div>
+								<Button
+									type="submit"
+									className="w-full"
+									onClick={handleBatchUpload}
+									disabled={isSubmitting || !batchFiles}>
+									{isSubmitting ? (
+										<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+									) : (
+										<Upload className="w-4 h-4 mr-2" />
+									)}
+									{isSubmitting
+										? "Processing..."
+										: `Upload ${
+												batchFiles?.length || 0
+										  } File(s)`}
+								</Button>
+								{batchUploadStatus && (
+									<p className="text-center text-sm text-muted-foreground mt-4">
+										{batchUploadStatus}
+									</p>
+								)}
+								<div className="flex flex-col gap-2">
+									{uploadedCertErrors &&
+										uploadedCertErrors.map(
+											(error, index) => (
+												<div
+													key={index}
+													className="flex flex-row justify-between w-full items-center border rounded-md px-2">
+													<p
+														key={index}
+														className="text-center text-sm text-destructive">
+														{index + 1}.{" "}
+														{error.name}
+													</p>
+													<p
+														key={index}
+														className="text-center text-sm text-destructive">
+														{error.error.substring(
+															0,
+															50
+														)}
+													</p>
+												</div>
+											)
+										)}
+								</div>
+							</CardContent>
+						</Card>
+					</TabsContent>
 
           {/* Single Issue */}
           <TabsContent value="single-issue">
@@ -564,96 +611,129 @@ export default function InstitutionPortal() {
             </Card>
           </TabsContent>
 
-          {/* Analytics */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="grid lg:grid-cols-2 gap-6">
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle>Issuance Analytics</CardTitle>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsData?.issuanceByMonth}>
-                      <XAxis
-                        dataKey="name"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar
-                        dataKey="count"
-                        fill="#8884d8"
-                        name="Issued"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-              <Card className="glass-card">
-                <CardHeader>
-                  <CardTitle>Verification Analytics</CardTitle>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={analyticsData?.verificationsByMonth}>
-                      <XAxis
-                        dataKey="name"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                      <Tooltip />
-                      <Legend />
-                      <Bar
-                        dataKey="count"
-                        fill="#82ca9d"
-                        name="Verifications"
-                        radius={[4, 4, 0, 0]}
-                      />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            </div>
-            <Card className="glass-card">
-              <CardHeader>
-                <CardTitle>Program Performance</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Program</TableHead>
-                      <TableHead>Issued</TableHead>
-                      <TableHead>Verifications</TableHead>
-                      <TableHead>Success Rate</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {analyticsData?.programStats.map((stat) => (
-                      <TableRow key={stat.courseName}>
-                        <TableCell className="font-medium">
-                          {stat.courseName}
-                        </TableCell>
-                        <TableCell>{stat.issued}</TableCell>
-                        <TableCell>{stat.verifications}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {stat.successRate.toFixed(1)}%
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+					{/* Analytics */}
+					<TabsContent value="analytics" className="space-y-6">
+						<div className="grid lg:grid-cols-2 gap-6">
+							<Card className="glass-card">
+								<CardHeader>
+									<CardTitle>Issuance Analytics</CardTitle>
+								</CardHeader>
+								<CardContent className="h-80">
+									<ResponsiveContainer
+										width="100%"
+										height="100%">
+										<BarChart
+											data={
+												analyticsData?.issuanceByMonth
+											}>
+											<XAxis
+												dataKey="name"
+												fontSize={12}
+												tickLine={false}
+												axisLine={false}
+											/>
+											<YAxis
+												fontSize={12}
+												tickLine={false}
+												axisLine={false}
+											/>
+											<Tooltip />
+											<Legend />
+											<Bar
+												dataKey="count"
+												fill="#8884d8"
+												name="Issued"
+												radius={[4, 4, 0, 0]}
+											/>
+										</BarChart>
+									</ResponsiveContainer>
+								</CardContent>
+							</Card>
+							<Card className="glass-card">
+								<CardHeader>
+									<CardTitle>
+										Verification Analytics
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="h-80">
+									<ResponsiveContainer
+										width="100%"
+										height="100%">
+										<BarChart
+											data={
+												analyticsData?.verificationsByMonth
+											}>
+											<XAxis
+												dataKey="name"
+												fontSize={12}
+												tickLine={false}
+												axisLine={false}
+											/>
+											<YAxis
+												fontSize={12}
+												tickLine={false}
+												axisLine={false}
+											/>
+											<Tooltip />
+											<Legend />
+											<Bar
+												dataKey="count"
+												fill="#82ca9d"
+												name="Verifications"
+												radius={[4, 4, 0, 0]}
+											/>
+										</BarChart>
+									</ResponsiveContainer>
+								</CardContent>
+							</Card>
+						</div>
+						<Card className="glass-card">
+							<CardHeader>
+								<CardTitle>Program Performance</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<Table>
+									<TableHeader>
+										<TableRow>
+											<TableHead>Program</TableHead>
+											<TableHead>Issued</TableHead>
+											<TableHead>Verifications</TableHead>
+											<TableHead>Success Rate</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody>
+										{analyticsData?.programStats &&
+											analyticsData?.programStats
+												?.length > 0 &&
+											analyticsData?.programStats.map(
+												(stat) => (
+													<TableRow
+														key={stat.program}>
+														<TableCell className="font-medium">
+															{stat.program}
+														</TableCell>
+														<TableCell>
+															{stat.issued}
+														</TableCell>
+														<TableCell>
+															{stat.verifications}
+														</TableCell>
+														<TableCell>
+															<Badge variant="outline">
+																{stat.successRate.toFixed(
+																	1
+																)}
+																%
+															</Badge>
+														</TableCell>
+													</TableRow>
+												)
+											)}
+									</TableBody>
+								</Table>
+							</CardContent>
+						</Card>
+					</TabsContent>
 
           {/* API Docs Tab (remains static) */}
           <TabsContent value="api-docs">
