@@ -11,6 +11,8 @@ const getInstituteIdFromRequest = async (): Promise<string> => {
 };
 
 export async function GET(request: Request) {
+    console.log("Full URL:", request.url)
+// console.log("Action param:", action)
     try {
         const instituteId = await getInstituteIdFromRequest();
         if (!instituteId) {
@@ -19,6 +21,7 @@ export async function GET(request: Request) {
 
         const { searchParams } = new URL(request.url);
         const action = searchParams.get('action');
+        console.log(action)
 
         switch (action) {
             case 'stats':

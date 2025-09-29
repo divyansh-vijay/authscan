@@ -10,8 +10,11 @@ export async function POST(request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+
+
         const { instituteId, userId } = authDetails;
         const certificateData = await request.json();
+        console.log({ certificateData })
         const newCertificate = await CertificateService.issueSingleCertificate(instituteId, userId, certificateData);
 
         return NextResponse.json(newCertificate, { status: 201 });

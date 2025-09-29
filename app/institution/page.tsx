@@ -68,7 +68,7 @@ interface Certificate {
 	id: string
 	certificateId: string
 	studentName: string
-	program: string
+	courseName: string
 	issueDate: string
 	status: string
 	blockchainTx: string | null
@@ -87,7 +87,7 @@ interface AnalyticsData {
 	issuanceByMonth: { name: string; count: number }[]
 	verificationsByMonth: { name: string; count: number }[]
 	programStats: {
-		program: string
+		courseName: string
 		issued: number
 		verifications: number
 		successRate: number
@@ -96,12 +96,13 @@ interface AnalyticsData {
 
 interface SingleIssueFormState {
 	studentName: string
-	studentEmail: string
-	program: string
+	// studentEmail: string
+	courseName: string
 	issueDate: string
-	description: string
+	// description: string
 	grade: string
-	duration: string
+	// duration: string
+	institution: string
 }
 
 // --- Helper Components ---
@@ -126,6 +127,160 @@ const StatCard: FC<{
 		</CardContent>
 	</Card>
 )
+
+const COURSES = [
+	// School Education
+	{ category: "Primary School", name: "Class 1" },
+	{ category: "Primary School", name: "Class 2" },
+	{ category: "Primary School", name: "Class 3" },
+	{ category: "Primary School", name: "Class 4" },
+	{ category: "Primary School", name: "Class 5" },
+	{ category: "Middle School", name: "Class 6" },
+	{ category: "Middle School", name: "Class 7" },
+	{ category: "Middle School", name: "Class 8" },
+	{ category: "Secondary School", name: "Class 9" },
+	{ category: "Secondary School", name: "Class 10 (SSC/ICSE/CBSE)" },
+	{
+		category: "Higher Secondary School",
+		name: "Class 11-12 (Science Stream)",
+	},
+	{
+		category: "Higher Secondary School",
+		name: "Class 11-12 (Commerce Stream)",
+	},
+	{
+		category: "Higher Secondary School",
+		name: "Class 11-12 (Arts/Humanities Stream)",
+	},
+
+	// Diploma Courses (Post 10th or 12th)
+	{ category: "Diploma", name: "Diploma in Engineering (Polytechnic)" },
+	{ category: "Diploma", name: "Diploma in Pharmacy (D.Pharm)" },
+	{ category: "Diploma", name: "Diploma in Hotel Management" },
+	{ category: "Diploma", name: "Diploma in Elementary Education (D.El.Ed.)" },
+	{
+		category: "Diploma",
+		name: "Industrial Training Institute (ITI) Courses",
+	},
+	{ category: "Diploma", name: "Diploma in Fine Arts" },
+	{ category: "Diploma", name: "Diploma in Computer Applications (DCA)" },
+
+	// Undergraduate Courses
+	{
+		category: "Engineering & Technology",
+		name: "Bachelor of Technology (B.Tech)",
+	},
+	{
+		category: "Engineering & Technology",
+		name: "Bachelor of Engineering (B.E.)",
+	},
+	{ category: "Architecture", name: "Bachelor of Architecture (B.Arch)" },
+	{
+		category: "Medical (Allopathic)",
+		name: "Bachelor of Medicine, Bachelor of Surgery (MBBS)",
+	},
+	{ category: "Medical (Dental)", name: "Bachelor of Dental Surgery (BDS)" },
+	{
+		category: "Medical (Ayurveda)",
+		name: "Bachelor of Ayurvedic Medicine and Surgery (BAMS)",
+	},
+	{
+		category: "Medical (Homeopathy)",
+		name: "Bachelor of Homeopathic Medicine and Surgery (BHMS)",
+	},
+	{ category: "Pharmacy", name: "Bachelor of Pharmacy (B.Pharm)" },
+	{
+		category: "Nursing",
+		name: "Bachelor of Science in Nursing (B.Sc. Nursing)",
+	},
+	{ category: "Physiotherapy", name: "Bachelor of Physiotherapy (BPT)" },
+	{
+		category: "Veterinary",
+		name: "Bachelor of Veterinary Science & Animal Husbandry (B.V.Sc & AH)",
+	},
+	{ category: "Science", name: "Bachelor of Science (B.Sc.)" },
+	{
+		category: "Computer Applications",
+		name: "Bachelor of Computer Applications (BCA)",
+	},
+	{ category: "Commerce", name: "Bachelor of Commerce (B.Com)" },
+	{
+		category: "Business Administration",
+		name: "Bachelor of Business Administration (BBA)",
+	},
+	{ category: "Arts & Humanities", name: "Bachelor of Arts (B.A.)" },
+	{ category: "Law", name: "Bachelor of Laws (LL.B.)" },
+	{ category: "Law", name: "Integrated LL.B. (e.g., B.A. LL.B., BBA LL.B.)" },
+	{ category: "Education", name: "Bachelor of Education (B.Ed.)" },
+	{ category: "Design", name: "Bachelor of Design (B.Des)" },
+	{ category: "Fine Arts", name: "Bachelor of Fine Arts (BFA)" },
+	{
+		category: "Hotel Management",
+		name: "Bachelor of Hotel Management (BHM)",
+	},
+	{ category: "Social Work", name: "Bachelor of Social Work (BSW)" },
+	{
+		category: "Journalism",
+		name: "Bachelor of Journalism and Mass Communication (BJMC)",
+	},
+
+	// Professional Certifications (Often pursued with UG)
+	{
+		category: "Professional Certification",
+		name: "Chartered Accountancy (CA)",
+	},
+	{ category: "Professional Certification", name: "Company Secretary (CS)" },
+	{
+		category: "Professional Certification",
+		name: "Cost and Management Accountant (CMA)",
+	},
+
+	// Postgraduate Courses
+	{
+		category: "Engineering & Technology",
+		name: "Master of Technology (M.Tech)",
+	},
+	{
+		category: "Engineering & Technology",
+		name: "Master of Engineering (M.E.)",
+	},
+	{ category: "Architecture", name: "Master of Architecture (M.Arch)" },
+	{ category: "Medical (Doctorate)", name: "Doctor of Medicine (MD)" },
+	{ category: "Medical (Surgery)", name: "Master of Surgery (MS)" },
+	{ category: "Medical (Dental)", name: "Master of Dental Surgery (MDS)" },
+	{ category: "Pharmacy", name: "Master of Pharmacy (M.Pharm)" },
+	{
+		category: "Nursing",
+		name: "Master of Science in Nursing (M.Sc. Nursing)",
+	},
+	{ category: "Physiotherapy", name: "Master of Physiotherapy (MPT)" },
+	{ category: "Science", name: "Master of Science (M.Sc.)" },
+	{
+		category: "Computer Applications",
+		name: "Master of Computer Applications (MCA)",
+	},
+	{ category: "Commerce", name: "Master of Commerce (M.Com)" },
+	{
+		category: "Business Administration",
+		name: "Master of Business Administration (MBA)",
+	},
+	{
+		category: "Management",
+		name: "Post Graduate Diploma in Management (PGDM)",
+	},
+	{ category: "Arts & Humanities", name: "Master of Arts (M.A.)" },
+	{ category: "Law", name: "Master of Laws (LL.M.)" },
+	{ category: "Education", name: "Master of Education (M.Ed.)" },
+	{ category: "Design", name: "Master of Design (M.Des)" },
+	{ category: "Fine Arts", name: "Master of Fine Arts (MFA)" },
+	{ category: "Social Work", name: "Master of Social Work (MSW)" },
+
+	// Doctoral & Post-Doctoral Studies
+	{ category: "Doctoral", name: "Doctor of Philosophy (Ph.D.)" },
+	{ category: "Doctoral (Medical)", name: "Doctorate of Medicine (DM)" },
+	{ category: "Doctoral (Surgical)", name: "Magister Chirurgiae (M.Ch.)" },
+	{ category: "Post-Doctoral", name: "Post-Doctoral Fellowship/Research" },
+]
 
 const StatusBadge: FC<{ status: string }> = ({ status }) => {
 	const statusMap = {
@@ -162,12 +317,12 @@ export default function InstitutionPortal() {
 	const [isLoading, setIsLoading] = useState(true)
 	const [formState, setFormState] = useState<SingleIssueFormState>({
 		studentName: "",
-		studentEmail: "",
-		program: "",
+		courseName: "",
 		issueDate: "",
-		description: "",
+		// description: "",
 		grade: "",
-		duration: "",
+		// duration: "",
+		institution: "",
 	})
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [batchFiles, setBatchFiles] = useState<FileList | null>(null)
@@ -210,14 +365,15 @@ export default function InstitutionPortal() {
 	}
 
 	const handleSelectChange = (value: string) => {
-		setFormState({ ...formState, program: value })
+		setFormState({ ...formState, courseName: value })
 	}
 
 	const handleSingleIssueSubmit = async (e: FormEvent) => {
+		console.log("getting into certs phase")
 		e.preventDefault()
 		setIsSubmitting(true)
 		try {
-			const response = await fetch("/api/certificates", {
+			const response = await fetch(`/api/certificates`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(formState),
@@ -226,12 +382,13 @@ export default function InstitutionPortal() {
 			alert("Certificate issued successfully!")
 			setFormState({
 				studentName: "",
-				studentEmail: "",
-				program: "",
+				// studentEmail: "",
+				courseName: "",
 				issueDate: "",
-				description: "",
+				// description: "",
 				grade: "",
-				duration: "",
+				// duration: "",
+				institution: "",
 			})
 			// Refresh recent certificates
 			const certsRes = await fetch(
@@ -398,7 +555,7 @@ export default function InstitutionPortal() {
 															{cert.studentName}
 														</p>
 														<p className="text-sm text-muted-foreground">
-															{cert.program}
+															{cert.courseName}
 														</p>
 													</div>
 													<div className="text-right">
@@ -421,17 +578,19 @@ export default function InstitutionPortal() {
 									<CardTitle>Verification Activity</CardTitle>
 								</CardHeader>
 								<CardContent>
-									<div
-										className={`space-y-4 ${
-											verificationLogs.length === 0
-												? "flex items-center justify-center"
-												: ""
-										}`}>
-										{verificationLogs.length === 0 && (
-											<p className="text-muted-foreground">
-												No verification activity
-											</p>
-										)}
+									<div className="space-y-4">
+										<div
+											className={`space-y-4 ${
+												verificationLogs.length === 0
+													? "flex items-center justify-center"
+													: ""
+											}`}>
+											{verificationLogs.length === 0 && (
+												<p className="text-muted-foreground">
+													No verification activity
+												</p>
+											)}
+										</div>
 										{verificationLogs.map((log) => (
 											<div
 												key={log.id}
@@ -553,115 +712,99 @@ export default function InstitutionPortal() {
 									individual student.
 								</CardDescription>
 							</CardHeader>
-							<CardContent
-								onSubmit={handleSingleIssueSubmit}
-								className="space-y-6">
-								<div className="grid md:grid-cols-2 gap-4">
-									<div>
-										<Label htmlFor="studentName">
-											Student Name
-										</Label>
-										<Input
-											id="studentName"
-											value={formState.studentName}
-											onChange={handleFormChange}
-											required
-										/>
+							<CardContent className="space-y-6">
+								<form
+									onSubmit={handleSingleIssueSubmit}
+									className="space-y-6">
+									<div className="grid md:grid-cols-2 gap-4">
+										<div className="flex flex-col gap-2">
+											<Label htmlFor="studentName">
+												Student Name
+											</Label>
+											<Input
+												id="studentName"
+												value={formState.studentName}
+												onChange={handleFormChange}
+												required
+											/>
+										</div>
 									</div>
-									<div>
-										<Label htmlFor="studentEmail">
-											Student Email
-										</Label>
-										<Input
-											id="studentEmail"
-											type="email"
-											value={formState.studentEmail}
-											onChange={handleFormChange}
-											required
-										/>
+
+									<div className="grid md:grid-cols-2 gap-4">
+										<div className="flex flex-col gap-2">
+											<Label htmlFor="courseName">
+												Program/Course
+											</Label>
+											<Select
+												onValueChange={
+													handleSelectChange
+												}
+												value={formState.courseName}
+												required>
+												<SelectTrigger>
+													<SelectValue placeholder="Select courseName" />
+												</SelectTrigger>
+												<SelectContent>
+													{COURSES.map(({ name }) => (
+														<SelectItem
+															key={name}
+															value={name}>
+															{name}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+
+										<div className="flex flex-col gap-2">
+											<Label htmlFor="issueDate">
+												Issue Date
+											</Label>
+											<Input
+												id="issueDate"
+												type="date"
+												value={formState.issueDate}
+												onChange={handleFormChange}
+												required
+											/>
+										</div>
+										<div className="flex flex-col gap-2">
+											<Label htmlFor="insstitutionName">
+												Institution Name
+											</Label>
+											<Input
+												id="institution"
+												value={formState.institution}
+												onChange={handleFormChange}
+												required
+											/>
+										</div>
 									</div>
-								</div>
-								<div className="grid md:grid-cols-2 gap-4">
-									<div>
-										<Label htmlFor="program">
-											Program/Course
-										</Label>
-										<Select
-											onValueChange={handleSelectChange}
-											value={formState.program}
-											required>
-											<SelectTrigger>
-												<SelectValue placeholder="Select program" />
-											</SelectTrigger>
-											<SelectContent>
-												<SelectItem value="Computer Science">
-													Computer Science
-												</SelectItem>
-												<SelectItem value="Data Science">
-													Data Science
-												</SelectItem>
-												<SelectItem value="Web Development">
-													Web Development
-												</SelectItem>
-											</SelectContent>
-										</Select>
+									<div className="grid md:grid-cols-2 gap-4">
+										<div className="flex flex-col gap-2">
+											<Label htmlFor="grade">
+												Grade (Optional)
+											</Label>
+											<Input
+												id="grade"
+												value={formState.grade}
+												onChange={handleFormChange}
+											/>
+										</div>
 									</div>
-									<div>
-										<Label htmlFor="issueDate">
-											Issue Date
-										</Label>
-										<Input
-											id="issueDate"
-											type="date"
-											value={formState.issueDate}
-											onChange={handleFormChange}
-											required
-										/>
-									</div>
-								</div>
-								<div>
-									<Label htmlFor="description">
-										Description
-									</Label>
-									<Textarea
-										id="description"
-										value={formState.description}
-										onChange={handleFormChange}
-									/>
-								</div>
-								<div className="grid md:grid-cols-2 gap-4">
-									<div>
-										<Label htmlFor="grade">
-											Grade (Optional)
-										</Label>
-										<Input
-											id="grade"
-											value={formState.grade}
-											onChange={handleFormChange}
-										/>
-									</div>
-									<div>
-										<Label htmlFor="duration">
-											Duration
-										</Label>
-										<Input
-											id="duration"
-											value={formState.duration}
-											onChange={handleFormChange}
-										/>
-									</div>
-								</div>
-								<Button
-									type="submit"
-									className="w-full"
-									disabled={isSubmitting}>
-									{isSubmitting ? (
-										<Loader2 className="w-4 h-4 mr-2 animate-spin" />
-									) : (
-										<Plus className="w-4 h-4 mr-2" />
-									)}
-									Issue Certificate
-								</Button>
+
+									<Button
+										type="submit"
+										className="w-full"
+										disabled={isSubmitting}>
+										{isSubmitting ? (
+											<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+										) : (
+											<Plus className="w-4 h-4 mr-2" />
+										)}
+										Issue Certificate
+									</Button>
+								</form>
 							</CardContent>
 						</Card>
 					</TabsContent>
@@ -682,15 +825,17 @@ export default function InstitutionPortal() {
 												analyticsData?.issuanceByMonth
 											}>
 											<XAxis
-												dataKey="name"
+												dataKey="month"
 												fontSize={12}
 												tickLine={false}
 												axisLine={false}
 											/>
 											<YAxis
+												dataKey={"count"}
 												fontSize={12}
-												tickLine={false}
-												axisLine={false}
+												tickLine={true}
+												axisLine={true}
+												interval={1}
 											/>
 											<Tooltip />
 											<Legend />
@@ -711,34 +856,42 @@ export default function InstitutionPortal() {
 									</CardTitle>
 								</CardHeader>
 								<CardContent className="h-80">
-									<ResponsiveContainer
-										width="100%"
-										height="100%">
-										<BarChart
-											data={
-												analyticsData?.verificationsByMonth
-											}>
-											<XAxis
-												dataKey="name"
-												fontSize={12}
-												tickLine={false}
-												axisLine={false}
-											/>
-											<YAxis
-												fontSize={12}
-												tickLine={false}
-												axisLine={false}
-											/>
-											<Tooltip />
-											<Legend />
-											<Bar
-												dataKey="count"
-												fill="#82ca9d"
-												name="Verifications"
-												radius={[4, 4, 0, 0]}
-											/>
-										</BarChart>
-									</ResponsiveContainer>
+									{analyticsData?.verificationsByMonth &&
+									analyticsData?.verificationsByMonth.length >
+										0 ? (
+										<ResponsiveContainer
+											width="100%"
+											height="100%">
+											<BarChart
+												data={
+													analyticsData?.verificationsByMonth
+												}>
+												<XAxis
+													dataKey="name"
+													fontSize={12}
+													tickLine={false}
+													axisLine={false}
+												/>
+												<YAxis
+													fontSize={12}
+													tickLine={false}
+													axisLine={false}
+												/>
+												<Tooltip />
+												<Legend />
+												<Bar
+													dataKey="count"
+													fill="#82ca9d"
+													name="Verifications"
+													radius={[4, 4, 0, 0]}
+												/>
+											</BarChart>
+										</ResponsiveContainer>
+									) : (
+										<p className="text-muted-foreground text-center">
+											No verification activity
+										</p>
+									)}
 								</CardContent>
 							</Card>
 						</div>
@@ -763,9 +916,9 @@ export default function InstitutionPortal() {
 											analyticsData?.programStats.map(
 												(stat) => (
 													<TableRow
-														key={stat.program}>
+														key={stat.courseName}>
 														<TableCell className="font-medium">
-															{stat.program}
+															{stat.courseName}
 														</TableCell>
 														<TableCell>
 															{stat.issued}

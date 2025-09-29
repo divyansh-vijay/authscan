@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://postgres:admin@localhost:5432/authscan?schema=public"
+  url      = "postgresql://postgres:postgres@localhost:5432/authscan?schema=public"
 }
 
 generator client {
